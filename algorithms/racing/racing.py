@@ -1,11 +1,54 @@
 import numpy as np
+import scipy.optimize as sciopt
 
 
+# KL divergence function
+def KLdiv(x, y, level):
+    return y*np.log(y/x)+(1-y)*np.log((1-y)/(1-x))-level
+
+
+def KLdiv_prime(x, y, level):
+    return (x-y)/(x*(1-x))
+
+
+def KLdiv_prime2(x, y, level):
+    return y/x**2 + (1-y)/(1-x)**2
+
+
+# Hoeffding confidence interval
 def Hoeffding(p, beta, n, upper, lower):
     return p + np.sqrt(beta / (2 * n)), p - np.sqrt(beta / (2 * n))
 
 
+# Chernoff information confidence interval
+def Chernoff(p, beta, n, upper, lower):
+    dlevel = beta/n
+    if p < 1e-14:
+        return 1-np.exp(-dlevel), 0.0
+    elif p > 1.0 - 1e-14:
+        return 1.0, np.exp(-dlevel)
+    else:
+        # get the upper bound
+        upper_curr = sciopt.bisect(f=KLdiv, a=p, b=1.0, args=(p, dlevel))
+        # if p < upper < 1.0:
+        #     upper_init = upper
+        # else:
+        #     upper_init = (p+1.0)/2
+        # print p, upper_init, dlevel
+        # upper_curr = sciopt.newton(func=KLdiv, x0=upper_init, fprime=KLdiv_prime, args=(p, dlevel))
+        # get the lower bound
+        lower_curr = sciopt.bisect(f=KLdiv, a=0.0, b=p, args=(p, dlevel))
+        # if 0.0 < lower < p:
+        #     lower_init = lower
+        # else:
+        #     lower_init = p/2
+        # lower_curr = sciopt.newton(func=KLdiv, x0=lower_init, fprime=KLdiv_prime, args=(p, dlevel))
+
+        return upper_curr, lower_curr
+
+
 def beta_racing(t, delta, n_arms):
+    # theoretically, we need alpha > 1, k_1 > 1 + 1/(alpha-1).
     return np.log(11.1*n_arms/delta)+1.1*np.log(t)
 
 
@@ -75,3 +118,4 @@ class racing():
         # increase t
         self.t += 1
         return
+

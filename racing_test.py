@@ -18,6 +18,7 @@ m = 3
 eps = 0.04
 delta = 0.1
 algo = racing(n_arms, m, eps, delta, Hoeffding)
+# algo = racing(n_arms, m, eps, delta, Chernoff)
 
 while len(algo.select) < m and len(algo.discard) < n_arms-m:
     # sample all the remaining arms
