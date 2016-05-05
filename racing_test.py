@@ -14,16 +14,16 @@ for a in range(2,K+1):
     arms.append(arm)
 
 n_arms = len(arms)
-m = 1
-eps = 0.00004
-delta = 0.01
+m = 3
+eps = 0.04
+delta = 0.1
 algo = racing(n_arms, m, eps, delta, Hoeffding)
 
 while len(algo.select) < m and len(algo.discard) < n_arms-m:
     # sample all the remaining arms
     chosen_arms = algo.select_arm()
-    print algo.t
-    print chosen_arms
+    # print algo.t
+    # print chosen_arms
     rewards = np.zeros(len(chosen_arms))
     for arm_id, arm in enumerate(chosen_arms):
         rewards[arm_id] = arms[arm].draw()

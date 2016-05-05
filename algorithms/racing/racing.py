@@ -47,7 +47,8 @@ class racing():
 
             self.values[arm] = ((n - 1) / float(n)) * self.values[arm] + (1 / float(n)) * rewards[arm_id]
 
-            upper, lower = self.method(self.values[arm], n, self.t, self.uppers[arm], self.lowers[arm])
+            beta = beta_racing(self.t, self.delta, self.n_arms)
+            upper, lower = self.method(self.values[arm], beta, n, self.uppers[arm], self.lowers[arm])
             self.uppers[arm] = upper
             self.lowers[arm] = lower
 
