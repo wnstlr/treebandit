@@ -9,3 +9,4 @@ TODO:
 5. Report: Algorithm <br />
            Comparation <br />
            Online Experiment A\B Testing <br />
+6. Test
