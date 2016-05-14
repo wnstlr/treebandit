@@ -23,5 +23,6 @@ from algorithms.exp3.exp3 import *
 from algorithms.hedge.hedge import *
 from algorithms.racing.racing import *
 
-# # Testing framework
+# Testing framework
 from testing_framework.tests import *
+from testing_framework.tests_for_PE import *

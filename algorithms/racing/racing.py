@@ -3,15 +3,15 @@ import scipy.optimize as sciopt
 
 
 # KL divergence function
-def KLdiv(x, y, level):
+def klBern(x, y, level):
     return y*np.log(y/x)+(1-y)*np.log((1-y)/(1-x))-level
 
 
-def KLdiv_prime(x, y, level):
+def klBern_prime(x, y, level):
     return (x-y)/(x*(1-x))
 
 
-def KLdiv_prime2(x, y, level):
+def klBern_prime2(x, y, level):
     return y/x**2 + (1-y)/(1-x)**2
 
 
@@ -29,20 +29,9 @@ def Chernoff(p, beta, n, upper, lower):
         return 1.0, np.exp(-dlevel)
     else:
         # get the upper bound
-        upper_curr = sciopt.bisect(f=KLdiv, a=p, b=1.0, args=(p, dlevel))
-        # if p < upper < 1.0:
-        #     upper_init = upper
-        # else:
-        #     upper_init = (p+1.0)/2
-        # print p, upper_init, dlevel
-        # upper_curr = sciopt.newton(func=KLdiv, x0=upper_init, fprime=KLdiv_prime, args=(p, dlevel))
+        upper_curr = sciopt.bisect(f=klBern, a=p, b=1.0, args=(p, dlevel))
         # get the lower bound
-        lower_curr = sciopt.bisect(f=KLdiv, a=0.0, b=p, args=(p, dlevel))
-        # if 0.0 < lower < p:
-        #     lower_init = lower
-        # else:
-        #     lower_init = p/2
-        # lower_curr = sciopt.newton(func=KLdiv, x0=lower_init, fprime=KLdiv_prime, args=(p, dlevel))
+        lower_curr = sciopt.bisect(f=klBern, a=0.0, b=p, args=(p, dlevel))
 
         return upper_curr, lower_curr
 
@@ -52,32 +41,56 @@ def beta_racing(t, delta, n_arms):
     return np.log(11.1*n_arms/delta)+1.1*np.log(t)
 
 
-class racing():
-    def __init__(self, n_arms, m, eps, delta, method):
-        self.n_arms = n_arms
+class Racing(object):
+    def __init__(self, arms, m, eps, delta, exp_rate, lucb_method):
+        self.arms = arms
+        self.n_arms = len(arms)
         self.m = m
         self.eps = eps
         self.delta = delta
-        self.counts = np.zeros(n_arms, dtype=int)
-        self.values = np.zeros(n_arms)
-        self.uppers = np.ones(n_arms)
-        self.lowers = np.zeros(n_arms)
+        self.beta = exp_rate
+        self.method = lucb_method
+
+        self.counts = np.zeros(self.n_arms, dtype=int)
+        self.values = np.zeros(self.n_arms)
+        self.uppers = np.ones(self.n_arms)
+        self.lowers = np.zeros(self.n_arms)
+
         self.select = set()
         self.discard = set()
-        self.remain = set(range(n_arms))
-        self.method = method
+        self.remain = set(range(self.n_arms))
+
         self.t = 1
+        self.N = 0
+        self.best_arms = set()
+
+        self.true_best_arms = set()
+        self.checkpoints = []
+        self.checkerrors = []
         return
 
-    def set_parameters(self, counts, values, uppers, lowers, select, discard, remain, t):
-        self.counts = counts
-        self.values = values
-        self.uppers = uppers
-        self.lowers = lowers
-        self.select = select
-        self.discard = discard
-        self.remain = remain
-        self.t = t
+    def initialize(self):
+        self.counts = np.zeros(self.n_arms, dtype=int)
+        self.values = np.zeros(self.n_arms)
+        self.uppers = np.ones(self.n_arms)
+        self.lowers = np.zeros(self.n_arms)
+
+        self.select = set()
+        self.discard = set()
+        self.remain = set(range(self.n_arms))
+
+        self.t = 1
+        self.N = 0
+        self.best_arms = set()
+
+        self.true_best_arms = set()
+        self.checkpoints = []
+        self.checkerrors = []
+        return
+
+    def set_checkpoints(self, checkpoints, best_arms):
+        self.checkpoints = checkpoints
+        self.true_best_arms = best_arms
         return
 
     def select_arm(self):
@@ -90,7 +103,7 @@ class racing():
 
             self.values[arm] = ((n - 1) / float(n)) * self.values[arm] + (1 / float(n)) * rewards[arm_id]
 
-            beta = beta_racing(self.t, self.delta, self.n_arms)
+            beta = self.beta(self.t, self.delta, self.n_arms)
             upper, lower = self.method(self.values[arm], beta, n, self.uppers[arm], self.lowers[arm])
             self.uppers[arm] = upper
             self.lowers[arm] = lower
@@ -108,6 +121,7 @@ class racing():
         arm_B = arms_remain[np.argmax(vals_remain)]
         arm_W = arms_remain[np.argmin(vals_remain)]
         # try to select or discard
+        # we use a = argmin_{a_B, a_W} (Uut-self.lowers[arm_B], self.uppers[arm_W]-Llt) instead of max
         if Uut-self.lowers[arm_B] < self.eps or self.uppers[arm_W]-Llt < self.eps:
             if Uut-self.lowers[arm_B] <= self.uppers[arm_W]-Llt:
                 self.remain.remove(arm_B)
@@ -115,7 +129,48 @@ class racing():
             else:
                 self.remain.remove(arm_W)
                 self.discard.add(arm_W)
-        # increase t
+        # increase number of arms drawed and t
+        self.N += len(rewards)
         self.t += 1
+        return J
+
+    def run(self):
+        while len(self.select) < self.m and len(self.discard) < self.n_arms-self.m:
+            # sample all the remaining arms
+            chosen_arms = self.select_arm()
+            rewards = np.zeros(len(chosen_arms))
+            for arm_id, arm in enumerate(chosen_arms):
+                rewards[arm_id] = self.arms[arm].draw()
+            # update
+            self.update(chosen_arms, rewards)
+
+        if len(self.select) == self.m:
+            self.best_arms = list(self.select)
+        else:
+            self.best_arms = list(self.select.union(self.remain))
         return
 
+    def run_with_check(self):
+        point_to_check = 0
+
+        while len(self.select) < self.m and len(self.discard) < self.n_arms-self.m:
+            # sample all the remaining arms
+            chosen_arms = self.select_arm()
+            rewards = np.zeros(len(chosen_arms))
+            for arm_id, arm in enumerate(chosen_arms):
+                rewards[arm_id] = self.arms[arm].draw()
+            # update
+            J = self.update(chosen_arms, rewards)
+            # the number of samples is larger than checkpoints[point_to_check], we record the empirical error
+            if point_to_check < len(self.checkpoints) and self.N >= self.checkpoints[point_to_check]:
+                # current best arms
+                curr_best_arms = self.select.union(set(J))
+                self.checkerrors.append(curr_best_arms != self.true_best_arms)
+                self.checkpoints[point_to_check] = self.N
+                point_to_check += 1
+
+        if len(self.select) == self.m:
+            self.best_arms = list(self.select)
+        else:
+            self.best_arms = list(self.select.union(self.remain))
+        return
