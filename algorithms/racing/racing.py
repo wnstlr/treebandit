@@ -89,7 +89,7 @@ class Racing(object):
         return
 
     def set_checkpoints(self, checkpoints, best_arms):
-        self.checkpoints = checkpoints
+        self.checkpoints = np.copy(checkpoints)
         self.true_best_arms = best_arms
         return
 
