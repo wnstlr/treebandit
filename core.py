@@ -11,6 +11,7 @@ import numpy as np
 from arms.adversarial import *
 from arms.bernoulli import *
 from arms.normal import *
+from arms.tree import *
 
 # Definitions of bandit algorithms
 from algorithms.epsilon_greedy.standard import *
@@ -22,6 +23,7 @@ from algorithms.ucb.ucb2 import *
 from algorithms.exp3.exp3 import *
 from algorithms.hedge.hedge import *
 from algorithms.racing.racing import *
+from algorithms.bast.bast import *
 
 # Testing framework
 from testing_framework.tests import *
