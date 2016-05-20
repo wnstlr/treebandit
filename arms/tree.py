@@ -156,6 +156,6 @@ class Node:
     def add_child(self, child_id):
         self.children.append(child_id)
 
-    def draw():
+    def draw(self):
         return random.gauss(self.mu, self.sigma)
 
