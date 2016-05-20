@@ -1,6 +1,7 @@
 import numpy as np
 import random
 from normal import *
+from bernoulli import *
 
 """
 Tree structure used for MAB
@@ -32,7 +33,7 @@ class Tree:
         # Binary tree
         num_child = 2
 
-        if curr_depth == self.max_depth-1:
+        if curr_depth == self.max_depth:
             self.leaf_ids.append(parent_id)
             self.nodes[parent_id]['is_leaf'] = True
             return 
@@ -71,7 +72,8 @@ class Tree:
         return leafs
 
     # Set up arms for rewards
-    def setup_smooth_arms(self, val_opt, delta, eta= 0.1, delta_type="exponential"):
+    def setup_smooth_arms(self, val_opt, delta, eta= 0.1, \
+                          delta_type="exponential", arm_type="normal"):
         if delta_type == "exponential":
             gamma = 0.5
             self.delta = delta * (gamma * np.ones(self.max_depth)) ** \
@@ -100,8 +102,12 @@ class Tree:
                     self.reset_mu_sigma(l)
 
         self.arms = dict()
-        for k, v in self.nodes.iteritems():
-            self.arms[k] = NormalArm(v['mu'], v['sigma'])
+        if arm_type == "normal":
+            for k, v in self.nodes.iteritems():
+                self.arms[k] = NormalArm(v['mu'], v['sigma'])
+        elif arm_type == "bernoulli":
+            for k, v in self.nodes.iteritems():
+                self.arms[k] = BernoulliArm(v['mu'])
 
     ## Accessor and static functions
     def is_leaf(self, node_id):

@@ -4,9 +4,7 @@ import matplotlib.pyplot as plt
 def has_converged(history, window):
     return len(set(history[-window:])) == 1
 
-delta = 1
 beta = 0.95
-val_opt = 0.8
 
 # Create tree arms
 depth = 4
@@ -20,8 +18,8 @@ tree_trend = []
 flat_trend = []
 
 for ns in xrange(num_sim):
-    print ns
     depth = random.randint(4, 7)
+    print depth
     tree = Tree()
     tree.create_tree(depth)
     val_opt = random.random()
