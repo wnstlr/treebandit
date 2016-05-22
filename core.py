@@ -24,6 +24,7 @@ from algorithms.exp3.exp3 import *
 from algorithms.hedge.hedge import *
 from algorithms.racing.racing import *
 from algorithms.bast.bast import *
+from algorithms.LUCB.LUCB import *
 
 # Testing framework
 from testing_framework.tests import *
