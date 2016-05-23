@@ -28,14 +28,14 @@ class MATRIX(object):
 #        # max number of iterations
 #        self.T = 100
 #
-#    def initialize(self):
-#        self.counts = np.zeros(self.n_arms, dtype=int)
-#        self.values = np.zeros(self.n_arms)
-#        self.emp_means = np.zeros(self.n_arms)
-#
-#    # Select an arm using the BAST algorithm.
-#    # Return a whole trajecotry, not just one node
-#    def select_arm(self, curr_time):
+    def initialize(self):
+        self.counts = np.zeros(self.n_arms, dtype=int)
+        self.values = np.zeros(self.n_arms)
+        self.emp_means = np.zeros(self.n_arms)
+
+    # Select an arm using the BAST algorithm.
+    # Return a whole trajecotry, not just one node
+    def select_arm(self, curr_time):
 #        # for t-th trajectory (iteration)
 #        curr_node = self.tree.root
 #        path_selected = [curr_node]
@@ -80,9 +80,9 @@ class MATRIX(object):
 #            # Move to the next node and loop
 #            curr_node = next_node
 #
-#        return path_selected
-#
-#    def update(self, chosen_path, reward):
+        return path_selected
+
+    def update(self, chosen_path, reward):
 #        leaf_id = chosen_path[-1]
 #        self.counts[chosen_path] += 1
 #        n = self.counts[leaf_id]
