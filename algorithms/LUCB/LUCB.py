@@ -53,19 +53,19 @@ def beta_LUCB(t, delta, n_arms):
 
 
 class LUCB():
-    def __init__(self,arms, n_arms, m, eps, delta, beta_method, method):
+    def __init__(self, arms, m, eps, delta, beta_method, method):
+        self.n_arms = len(arms)
         self.arms = arms
-        self.n_arms = n_arms
         self.m = m
         self.eps = eps
         self.delta = delta
         self.beta = beta_method
         self.method = method
 
-        self.counts = np.zeros(n_arms, dtype=int)
-        self.values = np.zeros(n_arms)
-        self.uppers = np.ones(n_arms)
-        self.lowers = np.zeros(n_arms)
+        self.counts = np.zeros(self.n_arms, dtype=int)
+        self.values = np.zeros(self.n_arms)
+        self.uppers = np.ones(self.n_arms)
+        self.lowers = np.zeros(self.n_arms)
         self.sample_arms = range(self.n_arms)
         self.sample_rewards = np.zeros(self.n_arms)
 
@@ -88,11 +88,15 @@ class LUCB():
         self.N = 0
         self.mbest = range(self.m)
 
-        self.true_best_arms = set()
+        self.true_best_arms = []
         self.checkpoints = []
         self.checkerrors = []
         return
 
+    def set_checkpoints(self, checkpoints, true_best_arms):
+        self.checkpoints = np.copy(checkpoints)
+        self.checkerrors = np.zeros(len(self.checkpoints))
+        self.true_best_arms = np.copy(true_best_arms)
 
 
     def update(self, sample_arms, sample_rewards):
@@ -126,13 +130,30 @@ class LUCB():
 
         return Uut - Llt > self.eps
 
-    def run(self, max_iter):
-        while(self.t<max_iter):
-            for arm_id, arm in enumerate(self.sample_arms):
-                self.sample_rewards[arm_id] = self.arms[arm].draw()
-            if self.update(self, self.sample_arms, self.sample_rewards) == False:
-                break
-        if self.t >= max_iter:
-            print "Reach Max Iterations Steps."
+    def run(self):
+        if self.checkpoints == []:
+            while(self.t < 1.e6):
+                for arm_id, arm in enumerate(self.sample_arms):
+                    self.sample_rewards[arm_id] = self.arms[arm].draw()
+                if self.update(self.sample_arms, self.sample_rewards) == False:
+                    break
+            if self.t >= 1.e6:
+                print "Reach Max Iterations Steps."
+        else:
+            flag = 1
+            for id, points in enumerate(self.checkpoints):
+                while(self.N < points):
+                    for arm_id, arm in enumerate(self.sample_arms):
+                        self.sample_rewards[arm_id] = self.arms[arm].draw()
+                    flag = self.update(self.sample_arms, self.sample_rewards)
+                    if flag == False:
+                        break
+                self.checkerrors[id] = np.array_equal(self.mbest, self.true_best_arms) == False
+                if flag == False:
+                    break
+            while(flag == 1):
+                for arm_id, arm in enumerate(self.sample_arms):
+                    self.sample_rewards[arm_id] = self.arms[arm].draw()
+                flag = self.update(self.sample_arms, self.sample_rewards)
         return
 
