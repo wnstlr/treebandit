@@ -1,5 +1,4 @@
 import numpy as np
-import scipy.optimize as sciopt
 
 
 # KL divergence function
@@ -21,7 +20,7 @@ def Hoeffding(p, beta, n, upper, lower):
 
 
 # Chernoff information confidence interval
-def Chernoff(p, beta, n, upper, lower):
+def Chernoff(p, beta, n, upper, lower, precision=1e-10, maxIterations=50):
     dlevel = beta/n
     if p < 1e-14:
         return 1-np.exp(-dlevel), 0.0
@@ -29,9 +28,43 @@ def Chernoff(p, beta, n, upper, lower):
         return 1.0, np.exp(-dlevel)
     else:
         # get the upper bound
-        upper_curr = sciopt.bisect(f=klBern, a=p, b=1.0, args=(p, dlevel))
+        # upper_curr = sciopt.bisect(f=klBern, a=p, b=1.0, args=(p, dlevel))
+        upper_curr = max(upper, p+1e-14)
+        if upper_curr >= 1.0:
+            upper_curr = (upper_curr+p)/2
+        solutionFoundUpper = False
+        for i in range(maxIterations):
+            # Newton step
+            upper_next = upper_curr - klBern(upper_curr, p, dlevel)/klBern_prime(upper_curr, p, dlevel)
+            if upper_next >= 1.0:
+                # if out of upper bound 1, bisection
+                upper_next = (upper_curr+1.0)/2
+            if abs(upper_next-upper_curr) <= precision:
+                solutionFoundUpper = True
+                break
+            upper_curr = upper_next
+
         # get the lower bound
-        lower_curr = sciopt.bisect(f=klBern, a=0.0, b=p, args=(p, dlevel))
+        # lower_curr = sciopt.bisect(f=klBern, a=0.0, b=p, args=(p, dlevel))
+        lower_curr = min(lower, p-1e-14)
+        if lower_curr <= 0:
+            lower_curr = (lower_curr+p)/2
+        solutionFoundLower = False
+        for i in range(maxIterations):
+            # Newton step
+            lower_next = lower_curr - klBern(lower_curr, p, dlevel)/klBern_prime(lower_curr, p, dlevel)
+            if lower_next <= 0:
+                # if out of lower bound 0, bisection
+                lower_next = lower_curr/2
+            if abs(lower_next-lower_curr) <= precision:
+                solutionFoundLower = True
+                break
+            lower_curr = lower_next
+
+        # if not (solutionFoundLower and solutionFoundUpper):
+        #     print "Chernoff iteration does not converge!"
+        # if upper_curr < p or lower_curr > p:
+        #     print "Converge to the wrong solution!"
 
         return upper_curr, lower_curr
 
