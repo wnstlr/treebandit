@@ -18,8 +18,9 @@ tree_trend = []
 flat_trend = []
 
 for ns in xrange(num_sim):
+    print "-------------------"
     depth = random.randint(4, 7)
-    print depth
+    print "Depth : %d"%depth
     tree = Tree()
     tree.create_tree(depth)
     val_opt = random.random()
@@ -33,7 +34,7 @@ for ns in xrange(num_sim):
         if v['is_leaf']:
             flat_arms.append({'arm': NormalArm(v['mu'], v['sigma']), 'id': k})
 
-    bast = BAST(tree, delta, beta)
+    bast = BAST2(tree, delta, beta)
     bast.initialize()
     ucb1 = UCB1([], [])
     ucb1.initialize(len(flat_arms))
@@ -63,12 +64,23 @@ for ns in xrange(num_sim):
 
     for t in xrange(max_iter):
         # for BAST
-        chosen_path = bast.select_arm(t)
-        reward = tree.arms[chosen_path[-1]].draw()
-        bast.update(chosen_path, reward)
-        history_tree.append(chosen_path[-1])
-        if len(history_tree) > 5 and has_converged(history_tree, 5):
-            horizon_tree.append(t)
+        chosen_path1, chosen_path2 = bast.select_arm(t)
+        
+        # Take the best empirical arm 
+        best_emp_means = list(np.where(bast.emp_means==np.mean(bast.emp_means)))
+        best_arm = [x for x in best_emp_means if x in bast.tree.leaf_ids][0]
+
+        ## Reward is different based on the situation
+        # If the best arm is in one of the chosen paths
+        if best_arm in [chosen_path1[-1], chosen_path2[-1]]:
+            reward1 = tree.arms[chosen_path1[-1]].draw()
+            reward2 = tree.arms[chosen_path1[-1]].draw()
+            bast.update(chosen_path1, chosen_path2, reward1, reward2)
+            history_tree.append(chosen_path1[-1])
+            if len(history_tree) > 5 and has_converged(history_tree, 5):
+                horizon_tree.append(t)
+        else:
+            raise NotImplementedError
 
         # for flat UCB1
         chosen_arm = ucb1.select_arm()
@@ -92,7 +104,7 @@ for ns in xrange(num_sim):
     print "Found optimal flat arm =%d"%best_ucb
     if opt_flat_arm == best_ucb:
         print "++ FLAT ARM CORRECT!"
-    
+
     if len(horizon_tree) != 0 and len(horizon_flat) != 0:
         tree_trend.append(horizon_tree[0])
         flat_trend.append(horizon_flat[0])
