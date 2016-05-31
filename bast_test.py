@@ -89,7 +89,7 @@ for ns in xrange(num_sim):
     #print ucb1.counts
     #print ucb1.values
     best_ucb = ucb1.values.index(max(ucb1.values))
-    print "Found optimal flat arm =%d"%best_ucb
+    print "Found optimal flat arm = %d"%best_ucb
     if opt_flat_arm == best_ucb:
         print "++ FLAT ARM CORRECT!"
     
