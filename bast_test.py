@@ -26,6 +26,7 @@ for ns in xrange(num_sim):
     delta = random.uniform(1, 10)
     tree.setup_smooth_arms(val_opt, delta)
 
+    print [k for k,v in tree.nodes.iteritems() if v['mu'] == 0]
     tree_arms = tree.arms
     flat_arms = []
 
@@ -45,8 +46,8 @@ for ns in xrange(num_sim):
     opt_tree_arm = None
     max_mu = -1
     for k in tree.leaf_ids:
-        if tree_arms[k].mu > max_mu:
-            max_mu = tree_arms[k].mu
+        if tree_arms[k].p > max_mu:
+            max_mu = tree_arms[k].p
             opt_tree_arm = k
 
     print "Optimal Tree Arm = %d"%opt_tree_arm
