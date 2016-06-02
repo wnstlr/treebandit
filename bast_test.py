@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 def has_converged(history, window):
     return len(set(history[-window:])) == 1
 
-beta = 0.95
+beta = 0.05
 
 # Create tree arms
 depth = 4
@@ -26,7 +26,7 @@ for ns in xrange(num_sim):
     delta = random.uniform(1, 10)
     tree.setup_smooth_arms(val_opt, delta)
 
-    print [k for k,v in tree.nodes.iteritems() if v['mu'] == 0]
+    #print [k for k,v in tree.nodes.iteritems() if v['mu'] == 0]
     tree_arms = tree.arms
     flat_arms = []
 

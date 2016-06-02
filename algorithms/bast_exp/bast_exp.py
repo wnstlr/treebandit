@@ -74,14 +74,8 @@ class BAST_EXP(object):
 
             # Otherwise, we sample two arms within the subtree we have
             else:
-                opt_leafs = self.tree.get_leafs_of_subtree(opt_branch)
-                subopt_leafs = self.tree.get_leafs_of_subtree(subopt_branch)
-
-                best1 = opt_leafs[np.argmin(self.lowers[opt_leafs])]
-                best2 = subopt_leafs[np.argmax(self.uppers[subopt_leafs])]
-
-                path1 = self.tree.get_path(best1)
-                path2 = self.tree.get_path(best2)
+                path1 = self.get_best_LCB(opt_branch)
+                path2 = self.get_best_UCB(subopt_branch)
                 return path1, path2
 
     def update(self, path1, path2, reward1, reward2):
@@ -130,6 +124,90 @@ class BAST_EXP(object):
     #####
     ## Helper functions for computing the bounds for the algorithm
     #####
+    
+    def get_best_UCB(self, start_node):
+        if start_node in self.tree.leaf_ids:
+            return [start_node]
+        curr_node = start_node
+        path_selected = [curr_node]
+        all_visited = np.all(self.counts > 0)
+
+        while True:
+            # obtain children
+            children = self.tree.get_children(curr_node)
+
+            # If there are no children, we have reached a leaf node, so stop.
+            if len(children) == 0:
+                break
+
+            # Pick the child with bigger empirical mean 
+            max_val = -1
+            max_node = None
+            unvisited = [x for x in children if self.counts[x] == 0]
+
+            if all_visited:
+                for child in children:
+                    child_val = self.uppers[child]
+                    if child_val > max_val:
+                        max_val = child_val
+                        max_node = child
+            elif len(unvisited) == 0:
+                max_node = random.choice(children)
+            else:
+                max_node = random.choice(unvisited)
+
+            # Select child with the maximum bound as the next node
+            next_node = max_node
+
+            # Add the selected node to the path
+            path_selected.append(next_node)
+
+            # Move to the next node and loop
+            curr_node = next_node
+
+        return path_selected
+
+    def get_best_LCB(self, start_node):
+        if start_node in self.tree.leaf_ids:
+            return [start_node]
+        curr_node = start_node
+        path_selected = [curr_node]
+        all_visited = np.all(self.counts > 0)
+
+        while True:
+            # obtain children
+            children = self.tree.get_children(curr_node)
+
+            # If there are no children, we have reached a leaf node, so stop.
+            if len(children) == 0:
+                break
+
+            # Pick the child with bigger empirical mean 
+            max_val = -1
+            max_node = None
+            unvisited = [x for x in children if self.counts[x] == 0]
+
+            if all_visited:
+                for child in children:
+                    child_val = self.lowers[child]
+                    if child_val > max_val:
+                        max_val = child_val
+                        max_node = child
+            elif len(unvisited) == 0:
+                max_node = random.choice(children)
+            else:
+                max_node = random.choice(unvisited)
+
+            # Select child with the maximum bound as the next node
+            next_node = max_node
+
+            # Add the selected node to the path
+            path_selected.append(next_node)
+
+            # Move to the next node and loop
+            curr_node = next_node
+
+        return path_selected
 
     # Select the best empirical arm, and return the subroot of the subtree
     # which that arm is located.
