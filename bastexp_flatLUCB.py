@@ -5,11 +5,12 @@ def f(x,a):
     return max(3.6 * x * (1-x), 1 - 1. / a * abs(1 - a - x))
 
 num_sims = 10
+depth = 8
 
 # global variables for bast
 beta_bast = 0.1
 eps_bast = 0.1
-depth = 8
+
 
 #global variables for LUCB
 m_LUCB = 1
@@ -34,8 +35,8 @@ def LUCB_test(arms_means):
         caseH.run()
         caseC = LUCB(arms, m_LUCB, eps_LUCB, delta_LUCB, beta_LUCB, Chernoff)
         caseC.run()
-        num_samplings[0] += caseH.N/num_sims
-        num_samplings[1] += caseC.N/num_sims
+        num_samplings[0] += caseH.N/float(num_sims)
+        num_samplings[1] += caseC.N/float(num_sims)
     return num_samplings
 
 def BASTEXP_test(delta_bast, arms_means):
@@ -56,7 +57,7 @@ def BASTEXP_test(delta_bast, arms_means):
         bast = BAST_EXP(tree, delta_bast, beta_bast, eps_bast)
         bast.initialize()
         bast.run()
-        num_samplings += bast.N/num_sims
+        num_samplings += bast.N/float(num_sims)
     return num_samplings
 
 
@@ -86,6 +87,4 @@ plt.close(fig)
 
 
 
-
-Horizons_LUCB = np.array([Horizons_LUCB for i in range(50)])
 
