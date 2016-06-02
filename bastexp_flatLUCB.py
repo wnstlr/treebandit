@@ -30,7 +30,7 @@ def LUCB_test(arms_means):
     #store sampling complexity for LUCB with two types of bounds.
     arms = map(lambda (mu): BernoulliArm(mu), arms_means)
     for i in range(num_sims):
-        print i
+        print "LUCB sim_n =", i
         caseH = LUCB(arms, m_LUCB, eps_LUCB, delta_LUCB, beta_LUCB, Hoeffding)
         caseH.run()
         caseC = LUCB(arms, m_LUCB, eps_LUCB, delta_LUCB, beta_LUCB, Chernoff)
@@ -53,7 +53,7 @@ def BASTEXP_test(delta_bast, arms_means):
         tree.nodes[leaf]['mu'] = f(arms_means[i], a)
     tree.setup_smooth_arms(val_opt, delta_arm, arm_type='bernoulli')
     for i in range(num_sims):
-        print i
+        print "sim_n = ", i
         bast = BAST_EXP(tree, delta_bast, beta_bast, eps_bast)
         bast.initialize()
         bast.run()
@@ -62,6 +62,7 @@ def BASTEXP_test(delta_bast, arms_means):
 
 
 ## varying delta, compare bastexp and lucb
+print "running lucb"
 horizons = LUCB_test(Arms_means)
 Horizons_bast = []
 Delta_BAST = []
@@ -74,6 +75,7 @@ for i in range(0, 5):
         print i, j
 
 Horizons_LUCB = np.array([horizons for i in range(len(Delta_BAST))])
+Horizons_bast = np.array(Horizons_bast)
 
 fig = plt.figure()
 plt.plot(Delta_BAST, Horizons_LUCB[:][0]/100., 'ko-', label='LUCB')
