@@ -76,6 +76,7 @@ for i in range(0, 5):
 
 Horizons_LUCB = np.array([horizons for i in range(len(Delta_BAST))])
 Horizons_bast = np.array(Horizons_bast)
+Delta_BAST = np.log(Delta_BAST)/np.log(10)
 
 fig = plt.figure()
 plt.plot(Delta_BAST, Horizons_LUCB[:][0]/100., 'ko-', label='LUCB')
