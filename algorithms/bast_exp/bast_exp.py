@@ -183,23 +183,23 @@ class BAST_EXP(object):
                 break
 
             # Pick the child with bigger empirical mean 
-            max_val = -1
-            max_node = None
+            min_val = 100
+            min_node = None
             unvisited = [x for x in children if self.counts[x] == 0]
 
             if all_visited:
                 for child in children:
                     child_val = self.lowers[child]
-                    if child_val > max_val:
-                        max_val = child_val
-                        max_node = child
+                    if child_val < min_val:
+                        min_val = child_val
+                        min_node = child
             elif len(unvisited) == 0:
-                max_node = random.choice(children)
+                min_node = random.choice(children)
             else:
-                max_node = random.choice(unvisited)
+                min_node = random.choice(unvisited)
 
             # Select child with the maximum bound as the next node
-            next_node = max_node
+            next_node = min_node
 
             # Add the selected node to the path
             path_selected.append(next_node)
