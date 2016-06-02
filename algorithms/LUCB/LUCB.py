@@ -13,6 +13,17 @@ def KLdiv_prime(x, y, level):
 def KLdiv_prime2(x, y, level):
     return y/x**2 + (1-y)/(1-x)**2
 
+def klBern(x, y, level):
+    return y*np.log(y/x)+(1-y)*np.log((1-y)/(1-x))-level
+
+
+def klBern_prime(x, y, level):
+    return (x-y)/(x*(1-x))
+
+
+def klBern_prime2(x, y, level):
+    return y/x**2 + (1-y)/(1-x)**2
+
 
 # Hoeffding confidence interval
 def Hoeffding(p, beta, n, upper, lower):
@@ -20,7 +31,7 @@ def Hoeffding(p, beta, n, upper, lower):
 
 
 # Chernoff information confidence interval
-def Chernoff(p, beta, n, upper, lower):
+def Chernoff(p, beta, n, upper, lower, precision=1e-10, maxIterations=50):
     dlevel = beta/n
     if p < 1e-14:
         return 1-np.exp(-dlevel), 0.0
@@ -28,20 +39,42 @@ def Chernoff(p, beta, n, upper, lower):
         return 1.0, np.exp(-dlevel)
     else:
         # get the upper bound
-        upper_curr = sciopt.bisect(f=KLdiv, a=p, b=1.0, args=(p, dlevel))
-        # if p < upper < 1.0:
-        #     upper_init = upper
-        # else:
-        #     upper_init = (p+1.0)/2
-        # print p, upper_init, dlevel
-        # upper_curr = sciopt.newton(func=KLdiv, x0=upper_init, fprime=KLdiv_prime, args=(p, dlevel))
+        # upper_curr = sciopt.bisect(f=klBern, a=p, b=1.0, args=(p, dlevel))
+        upper_curr = max(upper, p+1e-14)
+        if upper_curr >= 1.0:
+            upper_curr = (upper_curr+p)/2
+        solutionFoundUpper = False
+        for i in range(maxIterations):
+            # Newton step
+            upper_next = upper_curr - klBern(upper_curr, p, dlevel)/klBern_prime(upper_curr, p, dlevel)
+            if upper_next >= 1.0:
+                # if out of upper bound 1, bisection
+                upper_next = (upper_curr+1.0)/2
+            if abs(upper_next-upper_curr) <= precision:
+                solutionFoundUpper = True
+                break
+            upper_curr = upper_next
+
         # get the lower bound
-        lower_curr = sciopt.bisect(f=KLdiv, a=0.0, b=p, args=(p, dlevel))
-        # if 0.0 < lower < p:
-        #     lower_init = lower
-        # else:
-        #     lower_init = p/2
-        # lower_curr = sciopt.newton(func=KLdiv, x0=lower_init, fprime=KLdiv_prime, args=(p, dlevel))
+        # lower_curr = sciopt.bisect(f=klBern, a=0.0, b=p, args=(p, dlevel))
+        lower_curr = min(lower, p-1e-14)
+        if lower_curr <= 0:
+            lower_curr = (lower_curr+p)/2
+        solutionFoundLower = False
+        for i in range(maxIterations):
+            # Newton step
+            lower_next = lower_curr - klBern(lower_curr, p, dlevel)/klBern_prime(lower_curr, p, dlevel)
+            if lower_next <= 0:
+                # if out of lower bound 0, bisection
+                lower_next = lower_curr/2
+            if abs(lower_next-lower_curr) <= precision:
+                solutionFoundLower = True
+                break
+            lower_curr = lower_next
+        if not (solutionFoundLower and solutionFoundUpper):
+             print "Chernoff iteration does not converge!"
+        if upper_curr < p or lower_curr > p:
+             print "Converge to the wrong solution!"
 
         return upper_curr, lower_curr
 
@@ -96,7 +129,7 @@ class LUCB():
     def set_checkpoints(self, checkpoints, true_best_arms):
         self.checkpoints = np.copy(checkpoints)
         self.checkerrors = np.zeros(len(self.checkpoints))
-        self.true_best_arms = np.copy(true_best_arms)
+        self.true_best_arms = true_best_arms
 
 
     def update(self, sample_arms, sample_rewards):
@@ -109,7 +142,6 @@ class LUCB():
             self.counts[arm] += 1
             n = self.counts[arm]
             self.values[arm] = ((n - 1) / float(n)) * self.values[arm] + (1 / float(n)) * self.sample_rewards[arm_id]
-
             beta = beta_LUCB(self.t, self.delta, self.n_arms)
             upper, lower = self.method(self.values[arm], beta, n, self.uppers[arm], self.lowers[arm])
             self.uppers[arm] = upper
@@ -140,7 +172,7 @@ class LUCB():
             if self.t >= 1.e6:
                 print "Reach Max Iterations Steps."
         else:
-            flag = 1
+            flag = True
             for id, points in enumerate(self.checkpoints):
                 while(self.N < points):
                     for arm_id, arm in enumerate(self.sample_arms):
@@ -148,10 +180,10 @@ class LUCB():
                     flag = self.update(self.sample_arms, self.sample_rewards)
                     if flag == False:
                         break
-                self.checkerrors[id] = np.array_equal(self.mbest, self.true_best_arms) == False
+                self.checkerrors[id] = set(self.mbest) != self.true_best_arms
                 if flag == False:
                     break
-            while(flag == 1):
+            while(flag == True):
                 for arm_id, arm in enumerate(self.sample_arms):
                     self.sample_rewards[arm_id] = self.arms[arm].draw()
                 flag = self.update(self.sample_arms, self.sample_rewards)

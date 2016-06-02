@@ -57,6 +57,9 @@ plt.xlabel('K')
 plt.savefig('figure/test1_LUCB.png', bbox_inches='tight')
 plt.close(fig)
 
+
+
+
 ## test23
 print "test 23"
 num_sims = 100
@@ -97,7 +100,7 @@ plt.subplot(2, 1, 1)
 plt.hist(horizonsH1/10000, bins=10, range=[2.,22.], normed=True, facecolor='red', align='mid', label='LUCB')
 plt.hist(horizonsC1/10000, bins=10, range=[2.,22.], normed=True, facecolor='green', align='mid', label='KL-LUCB')
 plt.legend(loc='best')
-plt.title('Fraction of runs (in bins of width 1000)')
+plt.title('Fraction of runs (in bins of width 100)')
 plt.subplot(2, 1, 2)
 plt.hist(horizonsH2/10000, bins=10, range=[2.,22.], normed=True, facecolor='red', align='mid', label='LUCB')
 plt.hist(horizonsC2/10000, bins=10, range=[2.,22.], normed=True, facecolor='green', align='mid', label='KL-LUCB')
