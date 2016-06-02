@@ -84,7 +84,6 @@ class Tree:
     def setup_smooth_arms(self, val_opt, delta, eta= 0.1, \
                           delta_type="exponential", arm_type="bernoulli"):
 
-        # Set up the delta 
         if delta_type == "exponential":
             gamma = 0.5
             self.delta = delta * (gamma * np.ones(self.max_depth)) ** \
@@ -96,48 +95,21 @@ class Tree:
             alpha = -0.5
             self.delta = delta * np.array(range(self.max_depth)) ** alpha
 
-        # Eta tolerance and the value of optimal arm
         self.eta = eta
         self.val_opt = val_opt
 
-        # Select eta-optimal arms randomly from leafs
-        self.sub_opt = random.sample(self.leaf_ids, \
-                                     random.randint(4, len(self.leaf_ids)/4))
+        self.sub_opt = [k for k, v in self.nodes.iteritems() \
+                                   if self.val_opt - v['mu'] <= eta]
 
-        # Build an optimal arm using the optimal value given.
-        opt_arm = random.choice(self.sub_opt)
-        opt_path = self.get_path(opt_arm)
-
-        # The optimal path will have the optimal value
-        for p in opt_path:
-            self.nodes[p]['mu'] = self.val_opt
-
-        # Set the values of eta-optimal nodes to lie within eta from optimal
-        new_sub_opt = set()
+        # Reset the mu and sigma for each arms to ensure smoothness
         for i in self.sub_opt:
-            if i != opt_arm:
-                self.nodes[i]['mu'] = self.val_opt - random.random() * eta
-            for j in self.get_path(i):
-                new_sub_opt.add(j)
-
-        # Create a new set of eta-optimal nodes that also include internal ones
-        self.sub_opt = list(new_sub_opt)
-
-        # Set up all leaf arms using smoothness
-        for i in self.sub_opt:
-            if i not in self.leaf_ids:
-                mu_i = self.nodes[i]['mu']
-                d = self.get_depth(i)
-                leafs = self.get_leafs_of_subtree(i)
-                for l in leafs:
-                    if l not in self.sub_opt:
-                        self.nodes[l]['mu'] = \
-                                mu_i - random.random() * self.delta[d-1]
-
-        # Update the values for the internal nodes.
-        for i in self.nodes.keys():
-            self.nodes[i]['mu'] = \
-               max([self.nodes[x]['mu'] for x in self.get_leafs_of_subtree(i)])
+            d = self.get_depth(i)
+            leafs = self.get_leafs_of_subtree(i)
+            for l in leafs:
+                while True:
+                    if self.get_mu(i) - self.get_mu(l) <= self.delta[d-1]:
+                        break
+                    self.reset_mu_sigma(l)
 
         # Create arms based on the arm_type input and store it in dictionary.
         self.arms = dict()

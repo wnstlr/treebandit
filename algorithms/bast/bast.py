@@ -25,9 +25,6 @@ class BAST(object):
         self.beta = beta
         self.t = 0;
 
-        # max number of iterations
-        self.T = 100
-
     def initialize(self):
         self.counts = np.zeros(self.n_arms, dtype=int)
         self.values = np.zeros(self.n_arms)
@@ -137,4 +134,4 @@ class BAST(object):
     # Compute the confidence bound cn for some node
     def conf_bound(self, node_id):
         n = self.counts[node_id]
-        return np.sqrt(np.log(2 * self.t * n * (n+1) * 1. / self.beta) / (2*n))
+        return np.sqrt(np.log(2 * self.tree.num_nodes * n * (n+1) * 1. / self.beta) / (2*n))

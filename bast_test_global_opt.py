@@ -4,13 +4,13 @@
 execfile("core.py")
 import matplotlib.pyplot as plt
 
-NUM_ITER = 1000000
+NUM_ITER = 10000
 
 def f(x,a):
     return max(3.6 * x * (1-x), 1 - 1. / a * abs(1 - a - x))
 
-beta = 0.95
-depth = 5
+beta = 0.01
+depth = 10
 
 num_intervals = 2 ** depth
 domain = np.linspace(0,1,num_intervals+1)
@@ -20,7 +20,7 @@ centers = [(x[0] + x[1]) / 2. for x in intervals]
 a = 0.1
 L = 1 / a
 delta = L / 2.
-val_opt = 0.5
+val_opt = 0.9
 
 tree = Tree()
 tree.create_tree(depth)
@@ -42,17 +42,20 @@ for x in xdomain:
 
 selected = []
 for t in xrange(NUM_ITER):
+    if t % 100 == 0:
+        print t
     chosen_path = bast.select_arm(t)
     chosen_arm = chosen_path[-1]
     reward = tree.arms[chosen_arm].draw()
     bast.update(chosen_path, reward)
 
-selected = bast.values[tree.leaf_ids]
+selected = bast.counts[tree.leaf_ids] / float(NUM_ITER)
+#selected = bast.values[tree.leaf_ids]
 print selected
 
 fig = plt.figure()
 plt.plot(xdomain, fx, 'k', label='target')
-plt.plot(xdomain, selected, 'b', label='estimate')
+plt.plot(xdomain, selected, 'b-', label='estimate')
 plt.xlabel('location of the leaf')
 plt.ylabel('value')
 plt.legend(loc='best')

@@ -2,8 +2,8 @@ execfile("core.py")
 import matplotlib.pyplot as plt
 
 
-beta = 0.95
-eps = 0.001
+beta = 0.05
+eps = 0.1
 
 # Create tree arms
 depth = 6
@@ -64,7 +64,7 @@ for ns in xrange(num_sim):
     bast.run()
     best_tree = bast.best_arm
     print best_tree
-    print " Samples drawn:%d"%(bast.N)
+    print " Samples drawn: %d"%(bast.N)
     print "Found optimal tree arm(s) = %s"%best_tree[0]
     if opt_tree_arm == best_tree[0]:
         print "++ TREE ARM CORRECT!"
