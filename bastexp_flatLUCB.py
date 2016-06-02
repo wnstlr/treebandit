@@ -5,7 +5,7 @@ def f(x,a):
     return max(3.6 * x * (1-x), 1 - 1. / a * abs(1 - a - x))
 
 num_sims = 10
-depth = 8
+depth = 7
 
 # global variables for bast
 beta_bast = 0.1
@@ -16,6 +16,7 @@ eps_bast = 0.1
 m_LUCB = 1
 eps_LUCB = 0.1
 delta_LUCB = 0.1
+
 
 
 Arms_means = []
@@ -69,7 +70,7 @@ Delta_BAST = []
 
 for i in range(0, 5):
     for j in range(10):
-        Delta = 10**(i-1.)*(1+ j/10.)
+        Delta = 10**(i-1.)*(1+ j)
         Horizons_bast.append(BASTEXP_test(Delta, Arms_means))
         Delta_BAST.append(Delta)
         print i, j
@@ -79,8 +80,8 @@ Horizons_bast = np.array(Horizons_bast)
 Delta_BAST = np.log(Delta_BAST)/np.log(10.)
 
 fig = plt.figure()
-plt.plot(Delta_BAST, Horizons_LUCB[:][0]/100., 'ko-', label='LUCB')
-plt.plot(Delta_BAST, Horizons_LUCB[:][1]/100., 'bo-', label='KL-LUCB')
+plt.plot(Delta_BAST, Horizons_LUCB[:, 0]/100., 'ko-', label='LUCB')
+plt.plot(Delta_BAST, Horizons_LUCB[:, 1]/100., 'bo-', label='KL-LUCB')
 plt.plot(Delta_BAST, Horizons_bast[:]/100., 'go-', label='BAST_EXP')
 plt.legend(loc='best')
 plt.title('Expected sample complexity / 100')
