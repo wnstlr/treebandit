@@ -120,6 +120,16 @@ class Tree:
             for k, v in self.nodes.iteritems():
                 self.arms[k] = BernoulliArm(v['mu'])
 
+    def setup_smooth_arms_experiment(self, arm_type="bernoulli"):
+        # Create arms based on the arm_type input and store it in dictionary.
+        self.arms = dict()
+        if arm_type == "normal":
+            for k, v in self.nodes.iteritems():
+                self.arms[k] = NormalArm(v['mu'], v['sigma'])
+        elif arm_type == "bernoulli":
+            for k, v in self.nodes.iteritems():
+                self.arms[k] = BernoulliArm(v['mu'])
+
     ## Accessor and static functions
     def is_leaf(self, node_id):
         return self.nodes[node_id]['is_leaf']
