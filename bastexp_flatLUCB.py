@@ -32,9 +32,9 @@ def LUCB_test(arms_means):
     arms = map(lambda (mu): BernoulliArm(mu), arms_means)
     for i in range(num_sims):
         print "LUCB sim_n =", i
-        caseH = LUCB(arms, m_LUCB, eps_LUCB, delta_LUCB, beta_LUCB, Hoeffding)
+        caseH = LUCB(arms, m_LUCB, eps_LUCB, delta_LUCB, beta_lucb, Hoeffding)
         caseH.run()
-        caseC = LUCB(arms, m_LUCB, eps_LUCB, delta_LUCB, beta_LUCB, Chernoff)
+        caseC = LUCB(arms, m_LUCB, eps_LUCB, delta_LUCB, beta_lucb, Chernoff)
         caseC.run()
         num_samplings[0] += caseH.N/float(num_sims)
         num_samplings[1] += caseC.N/float(num_sims)

@@ -15,9 +15,9 @@ def test1_LUCB(num_sims, Klist):
         for sim in range(num_sims):
             means = np.random.random(k)
             arms = map(lambda (mu): BernoulliArm(mu), means)
-            caseH = LUCB(arms, m, eps, delta, beta_LUCB, Hoeffding)
+            caseH = LUCB(arms, m, eps, delta, beta_lucb, Hoeffding)
             caseH.run()
-            caseC = LUCB(arms, m, eps, delta, beta_LUCB, Chernoff)
+            caseC = LUCB(arms, m, eps, delta, beta_lucb, Chernoff)
             caseC.run()
             horizons[sim,0] = caseH.N
             horizons[sim,1] = caseC.N
@@ -72,8 +72,8 @@ arms = map(lambda (mu): BernoulliArm(mu), means)
 m = 3
 eps = 0.04
 delta = 0.1
-caseH = LUCB(arms, m, eps, delta, beta_LUCB, Hoeffding)
-caseC = LUCB(arms, m, eps, delta, beta_LUCB, Chernoff)
+caseH = LUCB(arms, m, eps, delta, beta_lucb, Hoeffding)
+caseC = LUCB(arms, m, eps, delta, beta_lucb, Chernoff)
 checkpoints = np.arange(1000, 7001, 1000)
 true_best_arms = [0,1,2]
 horizonsH1, checkpointsH1, checkerrorsH1 = test23_LUCB(caseH, num_sims, checkpoints, true_best_arms)
@@ -87,8 +87,8 @@ arms = map(lambda (mu): BernoulliArm(mu), means)
 m = 3
 eps = 0.02
 delta = 0.1
-caseH = LUCB(arms, m, eps, delta, beta_LUCB, Hoeffding)
-caseC = LUCB(arms, m, eps, delta, beta_LUCB, Chernoff)
+caseH = LUCB(arms, m, eps, delta, beta_lucb, Hoeffding)
+caseC = LUCB(arms, m, eps, delta, beta_lucb, Chernoff)
 horizonsH2, checkpointsH2, checkerrorsH2 = test23_LUCB(caseH, num_sims, checkpoints, true_best_arms)
 horizonsC2, checkpointsC2, checkerrorsC2 = test23_LUCB(caseC, num_sims, checkpoints, true_best_arms)
 errorrateH2 = np.sum(checkerrorsH2, axis = 0)/float(num_sims)
