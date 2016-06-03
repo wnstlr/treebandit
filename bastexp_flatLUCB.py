@@ -58,7 +58,7 @@ def BASTEXP_test(delta_bast, arms_means):
         bastH = BAST_EXP(tree, delta_bast, beta_bast, eps_bast, conf_method, Hoeffding_upper, Hoeffding_lower)
         bastH.initialize()
         bastH.run()
-        bastC = BAST_EXP(tree, delta_bast, beta_bast, eps_bast, conf_method, Hoeffding_upper, Hoeffding_lower)
+        bastC = BAST_EXP(tree, delta_bast, beta_bast, eps_bast, conf_method, Chernoff_upper, Chernoff_lower)
         bastC.initialize()
         bastC.run()
         num_samplings[0] += bastH.N/float(num_sims)
@@ -69,16 +69,18 @@ def BASTEXP_test(delta_bast, arms_means):
 ## varying delta, compare bastexp and lucb
 print "running lucb"
 horizons = LUCB_test(Arms_means)
-Horizons_bast = []
-Delta_BAST = []
+Delta_BAST = 10**np.linspace(-1, 3, 10)
+Horizons_bast = np.zeros((len(Delta_BAST), 2))
 
+for i in xrange(len(Delta_BAST)):
+    Horizons_bast[idx,:] = np.array(BASTEXP_test(Delta, Arms_means))
+"""
 for i in range(0, 5):
     for j in range(10):
         Delta = 10**(i-1.)*(1+ j)
-        Horizons_bast.append(BASTEXP_test(Delta, Arms_means))
-        Delta_BAST.append(Delta)
+        Horizons_bast[idx,:] = BASTEXP_test(Delta, Arms_means)
         print i, j
-
+"""
 Horizons_LUCB = np.array([horizons for i in range(len(Delta_BAST))])
 Horizons_bast = np.array(Horizons_bast)
 Delta_BAST = np.log(Delta_BAST)/np.log(10.)
@@ -86,7 +88,8 @@ Delta_BAST = np.log(Delta_BAST)/np.log(10.)
 fig = plt.figure()
 plt.plot(Delta_BAST, Horizons_LUCB[:, 0]/100., 'ko-', label='LUCB')
 plt.plot(Delta_BAST, Horizons_LUCB[:, 1]/100., 'bo-', label='KL-LUCB')
-plt.plot(Delta_BAST, Horizons_bast[:]/100., 'go-', label='BAST_EXP')
+plt.plot(Delta_BAST, Horizons_bast[:, 0]/100., 'go-', label='BASTEXP')
+plt.plot(Delta_BAST, Horizons_bast[:, 1]/100., 'ro-', label='KL-BASTEXP')
 plt.legend(loc='best')
 plt.title('Expected sample complexity / 100')
 plt.xlabel('Ln(delta)')
