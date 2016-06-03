@@ -47,7 +47,7 @@ def Chernoff(p, beta, n, upper, lower, precision=1e-14, maxIterations=50):
             if upper_next >= 1.0:
                 # if out of upper bound 1, bisection
                 upper_next = (upper_curr+1.0)/2
-            if abs(upper_next-upper_curr) <= 1e-4*precision and upper_next <= 1.0:
+            if abs(upper_next-upper_curr) <= precision and upper_next <= 1.0:
                 solutionFoundUpper = True
                 upper_curr = upper_next
                 break
