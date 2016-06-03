@@ -65,8 +65,8 @@ for ns in xrange(num_sim):
     best_tree = bast.best_arm
     print best_tree
     print " Samples drawn: %d"%(bast.N)
-    print "Found optimal tree arm(s) = %s"%best_tree[0]
-    if opt_tree_arm == best_tree[0]:
+    print "Found optimal tree arm(s) = %s"%best_tree
+    if opt_tree_arm == best_tree:
         print "++ TREE ARM CORRECT!"
 
     #print ucb1.counts

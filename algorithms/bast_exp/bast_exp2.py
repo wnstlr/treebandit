@@ -7,12 +7,16 @@ class BAST_EXP(object):
     """
     Exploration of smooth tree.
     """
-    def __init__(self, tree, delta, beta, eps, delta_type="exponential"):
+    def __init__(self, tree, delta, beta, eps, conf_method, method_upper, method_lower, delta_type="exponential"):
         self.tree = tree
+        self.opt_path = [self.tree.root]
+        self.curr_tree = self.tree.root
         self.leafs = self.tree.leaf_ids
         self.n_arms = len(self.tree.nodes)
         self.arms = range(self.n_arms)
-        self.arms_left = self.tree.leaf_ids
+        self.conf_method = conf_method
+        self.method_upper = method_upper
+        self.method_lower = method_lower
 
         if delta_type == "exponential":
             gamma = 0.5
@@ -42,42 +46,32 @@ class BAST_EXP(object):
         self.m_vals = np.zeros(self.n_arms)
 
     def select_arm(self):
-        self.t += 1
-        self.arms_left = self.tree.leaf_ids
-
-        # Find the best empirical arm
-        best_emp_arm, opt_branch = self.get_best_emp_arm(self.tree.root)
-        best_emp_path = self.tree.get_path(best_emp_arm)
-
-        # Find the best 2 arms
-        path1, path2 = self.select_arm_aux(self.tree.root, best_emp_path, opt_branch)
-        return path1, path2
-
-    # Helper funciton for select_arm
-    def select_arm_aux(self, new_root, best_emp_path, opt_branch):
         while True:
-            if opt_branch in self.tree.leaf_ids:
-                # We have eliminated all other branches, so the remaining 
-                # is the best arm
-                self.arms_left = [opt_branch]
-                path = self.tree.get_path(new_root)
-                return path, path
-            subopt_branch = [x for x in self.tree.get_children(new_root) \
+            if self.curr_tree in self.tree.leaf_ids:
+                break
+
+            # Find the best empirical arm
+            children = self.tree.get_children(self.curr_tree)
+            opt_branch = None
+            max_val = -1
+            for c in children:
+                if max_val < self.m_vals[c]:
+                    max_val = self.m_vals[c]
+                    opt_branch = c
+
+            subopt_branch = [x for x in self.tree.get_children(self.curr_tree) \
                     if x != opt_branch][0]
 
-            # If the lower bound of opt branch is bigger than the upper bound
-            # of subopt branch, we continue with the new subtree rooted 
-            # at the opt branch.
             if self.lowers[opt_branch] >= self.uppers[subopt_branch] - self.eps:
-                self.arms_left = [x for x in self.tree.get_leafs_of_subtree(opt_branch)]
-                new_root = opt_branch
-                opt_branch = best_emp_path[best_emp_path.index(new_root)+1]
-
-            # Otherwise, we sample two arms within the subtree we have
+                self.opt_path.append(opt_branch)
+                self.curr_tree = opt_branch
             else:
                 path1 = self.get_best_LCB(opt_branch)
                 path2 = self.get_best_UCB(subopt_branch)
+                self.N += 2
                 return path1, path2
+
+        return self.opt_path, self.opt_path
 
     def update(self, path1, path2, reward1, reward2):
         # Start from the leaf and update the values and emp_means
@@ -113,15 +107,19 @@ class BAST_EXP(object):
     # Run the algorithm
     def run(self):
         # Continue while there is one arm left
-        while len(self.arms_left) > 1:
+        while True:
+            self.t += 1
             if self.t > self.T:
                 print "MAX ITER reached."
                 break
             path1, path2 = self.select_arm()
+            if path1 == path2:
+                break
             reward1 = self.tree.arms[path1[-1]].draw()
             reward2 = self.tree.arms[path2[-1]].draw()
             self.update(path1, path2, reward1, reward2)
-        self.best_arm = self.arms_left
+        self.best_arm = self.opt_path[-1]
+        assert(self.best_arm in self.tree.leaf_ids)
 
     #####
     ## Helper functions for computing the bounds for the algorithm
@@ -213,6 +211,7 @@ class BAST_EXP(object):
 
         return path_selected
 
+    """
     # Select the best empirical arm, and return the subroot of the subtree
     # which that arm is located.
     def get_best_emp_arm(self, start_node):
@@ -262,11 +261,11 @@ class BAST_EXP(object):
         # Return the leaf node we found as the best empirical arm,
         # and return the subroot of the subtree that leaf is located in.
         return path_selected[-1], subroot
+    """
 
     # Udpate the m values on the path selected.
     def update_m_vals(self, path):
         for node in reversed(path):
-            cn = self.conf_bound(node)
             if node in self.tree.leaf_ids:
                 self.m_vals[node] = self.emp_means[node]
             else:
@@ -278,27 +277,34 @@ class BAST_EXP(object):
     # Udpate the upper bound on the path selected.
     def update_uppers(self, path):
         for node in reversed(path):
-            cn = self.conf_bound(node)
             if node in self.tree.leaf_ids:
                 self.uppers[node] = self.emp_means[node] + cn
             else:
                 children = self.tree.get_children(node)
                 depth = self.tree.get_depth(node)
                 child_vals = self.emp_means[children]
-                self.uppers[node] =  min(max(child_vals), \
-                                    self.emp_means[node] + self.delta[depth-1] + cn)
+                n = self.counts[node]
+                upper = self.method_upper(self.emp_means[node],\
+                                          self.conf_method(n, beta, self.tree.num_nodes),\
+                                          n,\
+                                          self.uppers[node])
+                self.uppers[node] =  min(max(child_vals),\
+                                    upper + self.delta[depth-1])
 
     # Udpate the lower bound on the path selected.
     def update_lowers(self, path):
         for node in reversed(path):
-            cn = self.conf_bound(node)
             if node in self.tree.leaf_ids:
                 self.lowers[node] = self.emp_means[node] - cn
             else:
                 children = self.tree.get_children(node)
                 child_vals = self.emp_means[children]
-                self.lowers[node] = max(max(child_vals), \
-                                        self.emp_means[node] - cn)
+                n = self.counts[node]
+                lower = self.method_lower(self.emp_means[node],\
+                                          self.conf_method(n, beta, self.tree.num_nodes),\
+                                          n,\
+                                          self.lowers[node])
+                self.lowers[node] = max(max(child_vals), lower)
 
     # Compute the empirical mean of an arbitrary node 
     def empirical_mean_reward(self, node_id):
@@ -311,9 +317,3 @@ class BAST_EXP(object):
             for l in leafs:
                 summed += self.counts[l] * self.emp_means[l]
             return 1. / self.counts[node_id] * summed
-
-    # Compute the confidence bound cn for some node
-    def conf_bound(self, node_id):
-        n = self.counts[node_id]
-        return np.sqrt(np.log(2 * self.tree.num_nodes * n * (n+1) * 1. \
-                              / self.beta) / (2*n))

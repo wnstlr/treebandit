@@ -25,8 +25,12 @@ from algorithms.hedge.hedge import *
 from algorithms.racing.racing import *
 from algorithms.bast.bast import *
 from algorithms.bast2.bast2 import *
-from algorithms.bast_exp.bast_exp import *
+#from algorithms.bast_exp.bast_exp import *
+from algorithms.bast_exp.bast_exp2 import *
 from algorithms.LUCB.LUCB import *
+
+# Confidence methods
+from algorithms.methods.confidence_methods import *
 
 # Testing framework
 from testing_framework.tests import *
