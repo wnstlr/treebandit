@@ -211,58 +211,6 @@ class BAST_EXP(object):
 
         return path_selected
 
-    """
-    # Select the best empirical arm, and return the subroot of the subtree
-    # which that arm is located.
-    def get_best_emp_arm(self, start_node):
-        if start_node in self.tree.leaf_ids:
-            return start_node, start_node
-        curr_node = start_node
-        path_selected = [curr_node]
-        all_visited = np.all(self.counts > 0)
-
-        while True:
-            # obtain children
-            children = self.tree.get_children(curr_node)
-
-            # If there are no children, we have reached a leaf node, so stop.
-            if len(children) == 0:
-                break
-
-            # Pick the child with bigger empirical mean 
-            max_val = -1
-            max_node = None
-            unvisited = [x for x in children if self.counts[x] == 0]
-
-            if all_visited:
-                for child in children:
-                    child_val = self.m_vals[child]
-                    if child_val > max_val:
-                        max_val = child_val
-                        max_node = child
-            elif len(unvisited) == 0:
-                max_node = random.choice(children)
-            else:
-                max_node = random.choice(unvisited)
-
-            # Select child with the maximum bound as the next node
-            next_node = max_node
-
-            # Add the selected node to the path
-            path_selected.append(next_node)
-
-            # Move to the next node and loop
-            curr_node = next_node
-
-        for c in self.tree.get_children(start_node):
-            if path_selected[-1] in self.tree.get_leafs_of_subtree(c):
-                subroot = c
-
-        # Return the leaf node we found as the best empirical arm,
-        # and return the subroot of the subtree that leaf is located in.
-        return path_selected[-1], subroot
-    """
-
     # Udpate the m values on the path selected.
     def update_m_vals(self, path):
         for node in reversed(path):
@@ -277,33 +225,33 @@ class BAST_EXP(object):
     # Udpate the upper bound on the path selected.
     def update_uppers(self, path):
         for node in reversed(path):
+            n = self.counts[node]
+            upper = self.method_upper(self.emp_means[node],\
+                                        self.conf_method(n, self.beta, self.tree.num_nodes),\
+                                        n,\
+                                        self.uppers[node])
             if node in self.tree.leaf_ids:
-                self.uppers[node] = self.emp_means[node] + cn
+                self.uppers[node] = upper
             else:
                 children = self.tree.get_children(node)
                 depth = self.tree.get_depth(node)
                 child_vals = self.emp_means[children]
-                n = self.counts[node]
-                upper = self.method_upper(self.emp_means[node],\
-                                          self.conf_method(n, beta, self.tree.num_nodes),\
-                                          n,\
-                                          self.uppers[node])
                 self.uppers[node] =  min(max(child_vals),\
                                     upper + self.delta[depth-1])
 
     # Udpate the lower bound on the path selected.
     def update_lowers(self, path):
         for node in reversed(path):
+            n = self.counts[node]
+            lower = self.method_lower(self.emp_means[node],\
+                                        self.conf_method(n, self.beta, self.tree.num_nodes),\
+                                        n,\
+                                        self.lowers[node])
             if node in self.tree.leaf_ids:
-                self.lowers[node] = self.emp_means[node] - cn
+                self.lowers[node] = lower
             else:
                 children = self.tree.get_children(node)
                 child_vals = self.emp_means[children]
-                n = self.counts[node]
-                lower = self.method_lower(self.emp_means[node],\
-                                          self.conf_method(n, beta, self.tree.num_nodes),\
-                                          n,\
-                                          self.lowers[node])
                 self.lowers[node] = max(max(child_vals), lower)
 
     # Compute the empirical mean of an arbitrary node 
