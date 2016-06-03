@@ -47,7 +47,7 @@ def BASTEXP_test(delta_bast, arms_means):
     L = 1 / a
     delta_arm = L / 2.
     val_opt = 0.9
-    num_samplings = 0
+    num_samplings = [0,0]
     # Set up bernoulli rewards
     for i in xrange(len(tree.leaf_ids)):
         leaf = tree.leaf_ids[i]
@@ -55,10 +55,14 @@ def BASTEXP_test(delta_bast, arms_means):
     tree.setup_smooth_arms_experiment(arm_type='bernoulli')
     for i in range(num_sims):
         print "sim_n = ", i
-        bast = BAST_EXP(tree, delta_bast, beta_bast, eps_bast, conf_method, Hoeffding_upper, Hoeffding_lower)
-        bast.initialize()
-        bast.run()
-        num_samplings += bast.N/float(num_sims)
+        bastH = BAST_EXP(tree, delta_bast, beta_bast, eps_bast, conf_method, Hoeffding_upper, Hoeffding_lower)
+        bastH.initialize()
+        bastH.run()
+        bastC = BAST_EXP(tree, delta_bast, beta_bast, eps_bast, conf_method, Hoeffding_upper, Hoeffding_lower)
+        bastC.initialize()
+        bastC.run()
+        num_samplings[0] += bastH.N/float(num_sims)
+        num_samplings[1] += bastC.N/float(num_sims)
     return num_samplings
 
 
