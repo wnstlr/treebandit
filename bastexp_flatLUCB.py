@@ -51,8 +51,8 @@ def BASTEXP_test(delta_bast, arms_means):
     # Set up bernoulli rewards
     for i in xrange(len(tree.leaf_ids)):
         leaf = tree.leaf_ids[i]
-        tree.nodes[leaf]['mu'] = f(arms_means[i], a)
-    tree.setup_smooth_arms(val_opt, delta_arm, arm_type='bernoulli')
+        tree.nodes[leaf]['mu'] = arms_means[i]
+    tree.setup_smooth_arms_experiment(arm_type='bernoulli')
     for i in range(num_sims):
         print "sim_n = ", i
         bast = BAST_EXP(tree, delta_bast, beta_bast, eps_bast)
