@@ -55,7 +55,7 @@ def BASTEXP_test(delta_bast, arms_means):
     tree.setup_smooth_arms_experiment(arm_type='bernoulli')
     for i in range(num_sims):
         print "sim_n = ", i
-        bast = BAST_EXP(tree, delta_bast, beta_bast, eps_bast)
+        bast = BAST_EXP(tree, delta_bast, beta_bast, eps_bast, conf_method, Hoeffding_upper, Hoeffding_lower)
         bast.initialize()
         bast.run()
         num_samplings += bast.N/float(num_sims)
