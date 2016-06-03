@@ -68,7 +68,6 @@ class BAST_EXP(object):
             else:
                 path1 = self.get_best_LCB(opt_branch)
                 path2 = self.get_best_UCB(subopt_branch)
-                self.N += 2
                 return path1, path2
 
         return self.opt_path, self.opt_path
