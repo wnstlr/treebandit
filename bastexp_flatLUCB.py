@@ -73,7 +73,8 @@ Delta_BAST = 10**np.linspace(-1, 3, 10)
 Horizons_bast = np.zeros((len(Delta_BAST), 2))
 
 for i in xrange(len(Delta_BAST)):
-    Horizons_bast[idx,:] = np.array(BASTEXP_test(Delta, Arms_means))
+    Delta = Delta_BAST[i]
+    Horizons_bast[i,:] = np.array(BASTEXP_test(Delta, Arms_means))
 """
 for i in range(0, 5):
     for j in range(10):
