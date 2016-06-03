@@ -34,7 +34,7 @@ for ns in xrange(num_sim):
         if v['is_leaf']:
             flat_arms.append({'arm': BernoulliArm(v['mu']), 'id': k})
 
-    bast = BAST_EXP(tree, delta, beta, eps)
+    bast = BAST_EXP(tree, delta, beta, eps, conf_method, Hoeffding_upper, Hoeffding_lower)
     bast.initialize()
     ucb1 = UCB1([], [])
     ucb1.initialize(len(flat_arms))

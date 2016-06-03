@@ -11,7 +11,7 @@ def f(x,a):
     return max(3.6 * x * (1-x), 1 - 1. / a * abs(1 - a - x))
 
 beta = 0.01
-depth = 10
+depth = 5
 
 num_intervals = 2 ** depth
 domain = np.linspace(0,1,num_intervals+1)
@@ -54,7 +54,6 @@ selected1 = bast.counts[tree.leaf_ids] / float(NUM_ITER)
 #selected = bast.values[tree.leaf_ids]
 print selected1
 
-"""
 NUM_ITER = 1000000
 # Initialize 2nd BAST algorithm
 bast = BAST(tree, delta, beta)
@@ -77,7 +76,7 @@ for t in xrange(NUM_ITER):
 selected2 = bast.counts[tree.leaf_ids] / float(NUM_ITER)
 #selected = bast.values[tree.leaf_ids]
 print selected2
-
+"""
 xdomain = np.linspace(0,1,num_intervals)
 fx = []
 for x in xdomain:
@@ -102,7 +101,7 @@ pp = PdfPages('figure/fig_bast.pdf')
 fig = plt.figure()
 plt.plot(xdomain, fx, 'k', label='target')
 plt.plot(xdomain, selected1, 'r--', label='estimate(T=10e4)')
-#plt.plot(xdomain, selected2, 'b--', label='estimate(T=10e6)')
+plt.plot(xdomain, selected2, 'b--', label='estimate(T=10e6)')
 plt.xlabel('location of the leaf')
 plt.ylabel('value')
 plt.legend(loc='best')
