@@ -9,7 +9,7 @@ def test1(num_sims, Klist, algo):
     if algo == Racing:
         beta = beta_racing
     elif algo == LUCB:
-        beta = beta_LUCB
+        beta = beta_lucb
     else:
         print "Wrong algorithm input."
     horizons_mean = np.zeros((len(Klist), 2))
@@ -51,7 +51,7 @@ def test23_LUCB(algo, num_sims, check_points, true_bestarms):
 
 ## test 1
 print "test 1"
-num_sims = 1000
+num_sims = 10
 Klist = range(10,61,10)
 horizons_mean_racing = test1(num_sims, Klist, Racing)
 horizons_mean_LUCB = test1(num_sims, Klist, LUCB)
@@ -72,7 +72,7 @@ plt.close(fig)
 
 ## test23
 print "test 23"
-num_sims = 1000
+num_sims = 10
 # B1
 print "test 23 for B1"
 K = 15
@@ -85,8 +85,8 @@ eps = 0.04
 delta = 0.1
 caseH_racing = Racing(arms, m, eps, delta, beta_racing, Hoeffding)
 caseC_racing = Racing(arms, m, eps, delta, beta_racing, Chernoff)
-caseH_LUCB = LUCB(arms, m, eps, delta, beta_LUCB, Hoeffding)
-caseC_LUCB = LUCB(arms, m, eps, delta, beta_LUCB, Chernoff)
+caseH_LUCB = LUCB(arms, m, eps, delta, beta_lucb, Hoeffding)
+caseC_LUCB = LUCB(arms, m, eps, delta, beta_lucb, Chernoff)
 checkpoints = np.arange(1000, 7001, 1000)
 true_best_arms = set([0,1,2])
 horizonsH1_racing, checkpointsH1_racing, checkerrorsH1_racing = test23(caseH_racing, num_sims, checkpoints, true_best_arms)
@@ -108,8 +108,8 @@ eps = 0.02
 delta = 0.1
 caseH_racing = Racing(arms, m, eps, delta, beta_racing, Hoeffding)
 caseC_racing = Racing(arms, m, eps, delta, beta_racing, Chernoff)
-caseH_LUCB = LUCB(arms, m, eps, delta, beta_LUCB, Hoeffding)
-caseC_LUCB = LUCB(arms, m, eps, delta, beta_LUCB, Chernoff)
+caseH_LUCB = LUCB(arms, m, eps, delta, beta_lucb, Hoeffding)
+caseC_LUCB = LUCB(arms, m, eps, delta, beta_lucb, Chernoff)
 horizonsH2_racing, checkpointsH2_racing, checkerrorsH2_racing = test23(caseH_racing, num_sims, checkpoints, true_best_arms)
 horizonsC2_racing, checkpointsC2_racing, checkerrorsC2_racing = test23(caseC_racing, num_sims, checkpoints, true_best_arms)
 horizonsH2_LUCB, checkpointsH2_LUCB, checkerrorsH2_LUCB = test23_LUCB(caseH_LUCB, num_sims, checkpoints, true_best_arms)

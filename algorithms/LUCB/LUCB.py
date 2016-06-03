@@ -58,7 +58,7 @@ class LUCB():
             self.counts[arm] += 1
             n = self.counts[arm]
             self.values[arm] = ((n - 1) / float(n)) * self.values[arm] + (1 / float(n)) * self.sample_rewards[arm_id]
-            beta = beta_LUCB(self.t, self.delta, self.n_arms)
+            beta = self.beta(self.t, self.delta, self.n_arms)
             upper, lower = self.method(self.values[arm], beta, n, self.uppers[arm], self.lowers[arm])
             self.uppers[arm] = upper
             self.lowers[arm] = lower

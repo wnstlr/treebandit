@@ -132,7 +132,7 @@ def beta_racing(t, delta, n_arms):
     return np.log(11.1*n_arms/delta)+1.1*np.log(t)
 
 
-def beta_LUCB(t, delta, n_arms):
+def beta_lucb(t, delta, n_arms):
     # theoretically, we need alpha > 1, k_1 > 1 + 1/(alpha-1).
     a = 405.5*n_arms*np.power(t,1.1)/delta
     return np.log(a)+np.log(np.log(a))
