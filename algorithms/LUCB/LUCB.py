@@ -98,6 +98,7 @@ class LUCB():
                         break
                 self.checkerrors[id] = set(self.mbest) != self.true_best_arms
                 if flag == False:
+                    self.checkerrors[id:] = self.checkerrors[id]
                     break
             while(flag == True):
                 for arm_id, arm in enumerate(self.sample_arms):

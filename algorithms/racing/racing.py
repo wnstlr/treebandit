@@ -81,14 +81,22 @@ class Racing(object):
         arm_B = arms_remain[np.argmax(vals_remain)]
         arm_W = arms_remain[np.argmin(vals_remain)]
         # try to select or discard
-        # we use a = argmin_{a_B, a_W} (Uut-self.lowers[arm_B], self.uppers[arm_W]-Llt) instead of max
         if Uut-self.lowers[arm_B] < self.eps or self.uppers[arm_W]-Llt < self.eps:
+            # we use a = argmin_{a_B, a_W} (Uut-self.lowers[arm_B], self.uppers[arm_W]-Llt)
             if Uut-self.lowers[arm_B] <= self.uppers[arm_W]-Llt:
                 self.remain.remove(arm_B)
                 self.select.add(arm_B)
             else:
                 self.remain.remove(arm_W)
                 self.discard.add(arm_W)
+            # what is suggested in Kaufmann-Kalyanakrishnan-14 paper
+            # if (Uut-self.lowers[arm_B])*(Uut-self.lowers[arm_B]<self.eps) >= \
+            #         (self.uppers[arm_W]-Llt)*(self.uppers[arm_W]-Llt<self.eps):
+            #     self.remain.remove(arm_B)
+            #     self.select.add(arm_B)
+            # else:
+            #     self.remain.remove(arm_W)
+            #     self.discard.add(arm_W)
         # increase number of arms drawed and t
         self.N += len(rewards)
         self.t += 1

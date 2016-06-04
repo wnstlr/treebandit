@@ -13,6 +13,6 @@ def test23(algo, num_sims, checkPoints, trueBestArms):
         algo.run_with_check()
         horizons[sim] = algo.N
         checkpoints[sim] = algo.checkpoints
-        checkerrors[sim] = algo.checkerrors
+        checkerrors[sim] = algo.checkerrors + [algo.checkerrors[-1]]*(num_points-len(algo.checkerrors))
 
     return horizons, checkpoints, checkerrors
